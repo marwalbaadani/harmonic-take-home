@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
+import time
 
 from backend.db import database
 from backend.routes.companies import (
@@ -111,11 +111,13 @@ async def create_associations(
     companies = [database.CompanyCollectionAssociation(company_id=i, collection_id=colId) for i in list(companies_to_add)]
 
     batch_size = 500  
-    for i in range(0, 500, batch_size):
+    for i in range(0, len(companies), batch_size):
         try:
+            print("hi", i)
             batch = companies[i:i + batch_size]
             db.bulk_save_objects(batch)
-            db.commit() 
+            db.commit()
+            time.sleep(10)
         except Exception as e:
             print(f"Error during bulk save: {e}")
             db.rollback() 

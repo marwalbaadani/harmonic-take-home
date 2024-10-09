@@ -70,7 +70,6 @@ export async function addCompaniesToCollection(companyIds: string[], collectionI
     setLoading(true);
     const start = new Date().getTime();
     try {
-        console.log('trying', companyIds, collectionId);
         const response = await axios.post(`${BASE_URL}/associations/addMultipleAssociations`,
             {
                 companyIds: companyIds,
@@ -79,7 +78,6 @@ export async function addCompaniesToCollection(companyIds: string[], collectionI
                 currentCollection: currentCollection
             }
         );
-        console.log("REWSPONSE", response.data)
         const end = new Date().getTime();
         const time = end - start;
         console.log('Execution time: ' + time);
