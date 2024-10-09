@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
 from backend.db import database
-from backend.routes import collections, companies
+from backend.routes import collections, companies, company_collection_associations
 
 
 @asynccontextmanager
@@ -31,12 +31,12 @@ def seed_database(db: Session):
     db.execute(text("TRUNCATE TABLE company_collections CASCADE;"))
     db.execute(text("TRUNCATE TABLE companies CASCADE;"))
     db.execute(text("TRUNCATE TABLE company_collection_associations CASCADE;"))
-    db.execute(
-        text("""
-    DROP TRIGGER IF EXISTS throttle_updates_trigger ON company_collection_associations;
-    """)
-    )
-    db.commit()
+    # db.execute(
+    #     text("""
+    # DROP TRIGGER IF EXISTS throttle_updates_trigger ON company_collection_associations;
+    # """)
+    # )
+    # db.commit()
 
     companies = [database.Company(company_name=f"Company {i}") for i in range(100000)]
     db.bulk_save_objects(companies)
@@ -68,31 +68,32 @@ def seed_database(db: Session):
     db.bulk_save_objects(associations)
     db.commit()
 
-    db.execute(
-        text("""
-CREATE OR REPLACE FUNCTION throttle_updates()
-RETURNS TRIGGER AS $$
-BEGIN
-    PERFORM pg_sleep(0.1); -- Sleep for 100 milliseconds to simulate a slow update
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-    """)
-    )
+#     db.execute(
+#         text("""
+# CREATE OR REPLACE FUNCTION throttle_updates()
+# RETURNS TRIGGER AS $$
+# BEGIN
+#     PERFORM pg_sleep(0.1); -- Sleep for 100 milliseconds to simulate a slow update
+#     RETURN NEW;
+# END;
+# $$ LANGUAGE plpgsql;
+#     """)
+#     )
 
-    db.execute(
-        text("""
-CREATE TRIGGER throttle_updates_trigger
-BEFORE INSERT ON company_collection_associations
-FOR EACH ROW
-EXECUTE FUNCTION throttle_updates();
-    """)
-    )
-    db.commit()
+#     db.execute(
+#         text("""
+# CREATE TRIGGER throttle_updates_trigger
+# BEFORE INSERT ON company_collection_associations
+# FOR EACH ROW
+# EXECUTE FUNCTION throttle_updates();
+#     """)
+#     )
+#     db.commit()
 
 
 app.include_router(companies.router)
 app.include_router(collections.router)
+app.include_router(company_collection_associations.router)
 
 app.add_middleware(
     CORSMiddleware,

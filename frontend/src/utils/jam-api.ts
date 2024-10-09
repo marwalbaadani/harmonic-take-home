@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 export interface ICompany {
     id: number;
     company_name: string;
@@ -57,4 +58,38 @@ export async function getCollectionsMetadata(): Promise<ICollection[]> {
         console.error('Error fetching companies:', error);
         throw error;
     }
+}
+
+export async function addCompaniesToCollection(companyIds: string[], collectionId: string, allTag: boolean, currentCollection: string, setLoading: (loading: boolean) => void, setCopyRequestFulfilled: (copyRequestFulfilled: boolean) => void ): Promise<Boolean> {
+    console.log("beginning to load...");
+    setCopyRequestFulfilled(false);
+    console.log("collectionid", collectionId);
+    console.log("currentcollection", currentCollection);
+
+
+    setLoading(true);
+    const start = new Date().getTime();
+    try {
+        console.log('trying', companyIds, collectionId);
+        const response = await axios.post(`${BASE_URL}/associations/addMultipleAssociations`,
+            {
+                companyIds: companyIds,
+                collectionId: collectionId,
+                allTag: allTag,
+                currentCollection: currentCollection
+            }
+        );
+        console.log("REWSPONSE", response.data)
+        const end = new Date().getTime();
+        const time = end - start;
+        console.log('Execution time: ' + time);
+        setLoading(false);
+        setCopyRequestFulfilled(true);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching companies:', error);
+        setLoading(false);
+        throw error;
+    }
+
 }
