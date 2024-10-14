@@ -68,17 +68,17 @@ def seed_database(db: Session):
     db.bulk_save_objects(associations)
     db.commit()
 
-    db.execute(
-        text("""
-CREATE OR REPLACE FUNCTION throttle_updates()
-RETURNS TRIGGER AS $$
-BEGIN
-    PERFORM pg_sleep(0.1); -- Sleep for 100 milliseconds to simulate a slow update
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-    """)
-    )
+#     db.execute(
+#         text("""
+# CREATE OR REPLACE FUNCTION throttle_updates()
+# RETURNS TRIGGER AS $$
+# BEGIN
+#     PERFORM pg_sleep(0.1); -- Sleep for 100 milliseconds to simulate a slow update
+#     RETURN NEW;
+# END;
+# $$ LANGUAGE plpgsql;
+#     """)
+#     )
 
 #     db.execute(
 #         text("""

@@ -49,7 +49,11 @@ def get_company_collection_by_id(
     ),
     limit: int = Query(10, description="The number of items to fetch"),
     db: Session = Depends(database.get_db),
+    filterTerm: str = Query("", description="Search query if provided"),
 ):
+    
+    
+
     query = (
         db.query(database.CompanyCollectionAssociation, database.Company)
         .join(database.Company)
@@ -57,9 +61,15 @@ def get_company_collection_by_id(
     )
 
     total_count = query.with_entities(func.count()).scalar()
+    companies = []
+
+
+    if filterTerm:
+        query =  query.filter(database.Company.company_name.ilike(f'%{filterTerm}%'))
 
     results = query.offset(offset).limit(limit).all()
     companies = fetch_companies_with_liked(db, [company.id for _, company in results])
+
 
     return CompanyCollectionOutput(
         id=collection_id,

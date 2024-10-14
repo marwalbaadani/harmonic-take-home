@@ -1,10 +1,13 @@
 import uuid
 
 
-from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from fastapi import APIRouter, Depends, Query, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+import logging
+logger = logging.getLogger(__name__)
 import time
 
 from backend.db import database
@@ -58,7 +61,7 @@ async def create_associations(
     db: Session = Depends(database.get_db)
 ):
 
-    print("Starting")
+    logger.warning("Starting")
     companies_to_add = []
 
 
@@ -74,19 +77,19 @@ async def create_associations(
             .filter(database.CompanyCollectionAssociation.collection_id == request.collectionId)
             .all()
         }
-        print(request.collectionId)
-        print(request.currentCollection)
-        print('outging',len(outgoing_company_ids))
-        print("incoming", len(incoming_company_ids))
+        logger.warning(" %s" % request.collectionId)
+        logger.warning(" %s" % request.currentCollection)
+        logger.warning('outging %s' % len(outgoing_company_ids))
+        logger.warning('incoming %s' % len(incoming_company_ids))
 
         outgoing_company_ids.difference_update(incoming_company_ids)
 
         companies_to_add = outgoing_company_ids.copy()
 
 
-        print("# of companies to add", len(companies_to_add))
+        logger.warning("# of companies to add %s" % len(companies_to_add))
         if companies_to_add:
-            print("len of difference", len(companies_to_add))
+            logger.warning("len of difference %s" % len(companies_to_add))
     
     else:
         # originally a list of strings
@@ -103,26 +106,29 @@ async def create_associations(
 
     # error catching! if you try to add only things that have been added
     if not companies_to_add: 
-        print("selected companies are all duplicates")
+        logger.warning("selected companies are all duplicates")
         return True
     
     colId= request.collectionId
 
     companies = [database.CompanyCollectionAssociation(company_id=i, collection_id=colId) for i in list(companies_to_add)]
 
-    batch_size = 500  
+    batch_size = 1000  
     for i in range(0, len(companies), batch_size):
         try:
-            print("hi", i)
+            logger.warning("hi %s" % i)
             batch = companies[i:i + batch_size]
+            logger.warning("hello created the batch")
+
             db.bulk_save_objects(batch)
+            logger.warning("hello bulk saved")
+
             db.commit()
-            time.sleep(10)
+            logger.warning("hello committed")
+
         except Exception as e:
-            print(f"Error during bulk save: {e}")
-            db.rollback() 
-
-
+            logger.error(f"Error during bulk save: {e}")
+            db.rollback()
 
     return True
 

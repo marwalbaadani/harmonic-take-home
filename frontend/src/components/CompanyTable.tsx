@@ -18,16 +18,17 @@ const CompanyTable = (props: { selectedCollectionId: string, loading: boolean, c
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [copyRequestLoading, setCopyRequestLoading] = useState(false);
   const [copyRequestFulfilled, setCopyRequestFulfilled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('')
   
   useEffect(() => {
-    getCollectionsById(props.selectedCollectionId, offset, pageSize).then(
+    getCollectionsById(props.selectedCollectionId, offset, pageSize, searchQuery).then(
       (newResponse) => {
         setSelectedCollectionName(newResponse.collection_name);
         setResponse(newResponse.companies);
         setTotal(newResponse.total);
       }
     );
-  }, [props.selectedCollectionId, props.collectionsList, offset, pageSize]);
+  }, [props.selectedCollectionId, props.collectionsList, offset, pageSize, searchQuery]);
 
   useEffect(() => {
     setOffset(0);
@@ -63,13 +64,9 @@ const CompanyTable = (props: { selectedCollectionId: string, loading: boolean, c
       console.error('Failed to add companies:', error);
   } finally {
       console.log("finally");
- 
-      
-
+  }
   }
 
-
-  }
 
 
 
@@ -92,6 +89,11 @@ const CompanyTable = (props: { selectedCollectionId: string, loading: boolean, c
     <div className="font-bold text-md ps-6 mt-4 mb-4 text-left flex justify-between items-center">
     {selectedCollectionName}
 
+<div>
+<label>
+        Search: <input name="myInput" value={searchQuery}  onChange={(e)=> {setSearchQuery(e.target.value)}} />
+      </label>
+</div>
     <div className="relative inline-block text-left">
     <div>
       <button type="button" className="inline-flex justify-center items-center gap-x-1 rounded-md bg-gray-200 px-3 text-sm font-semibold text-gray-900 shadow-sm border-1 hover:bg-gray-100 me-5" id="menu-button" onClick={()=>setDropdownSelected(!dropdownSelected)} aria-expanded={dropdownSelected} aria-haspopup="true">
